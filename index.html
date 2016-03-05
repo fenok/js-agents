@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Agent example</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+
+    <canvas id="canvas" >CANVAS HERE</canvas>
+    <div id = copyrights>
+        <div>Icons made by <a href="http://www.freepik.com" title="Freepik" target="_blank">Freepik</a> from <a href="http://www.flaticon.com" title="Flaticon" target="_blank">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+        <div>Icons made by <a href="http://www.flaticon.com/authors/hanan" title="Hanan" target="_blank">Hanan</a> from <a href="http://www.flaticon.com" title="Flaticon" target="_blank">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+        <div><a href="http://nobacks.com/smoke-eleven/" title="Smoke eleven" target="_blank">Smoke Image</a></div>
+        <br>
+        <div>© Fen-ok, 2016</div>
+        <div><a href="https://github.com/fenok/js-agents" title="GitHub Page" target="_blank">GitHub Page</a></div>
+        <br>
+        <input type = "button" id = "back" value="Back" />
+    </div>
+    <div id = "interface">
+        <select id = "cellStateSelect">
+            <option selected = "selected" value = "GOLD">Gold</option>
+            <option value = "WALL">Wall</option>
+            <option value = "MINER">Miner</option>
+            <option value = "EMPTY">Empty</option>
+        </select>
+        <input type = "button" id = "speedUpButton" value="SpeedUp" />
+        <input type = "button" id = "speedDownButton" value="SpeedDown" />
+        <input type = "button" id = "actorUpButton" value="ActorUp" />
+        <input type = "button" id = "actorDownButton" value="ActorDown" />
+        <input type = "button" id = "showCopyrightsButton" value="Show copyrights" />
+    </div>
+</body>
+<script src="scripts.js"></script>
+</html>
