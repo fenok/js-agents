@@ -111,7 +111,7 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 		{
 			if ( _actors[ _currentActor ] !== undefined )
 			{
-				drawContent( _actors[ _currentActor ].getLocalFieldCells(), 0.7, _actors[ _currentActor ].getTargetIndexes(), _actors[ _currentActor ].getTargetIndexesGold(), _actors[_currentActor ].getMemoryCooldownCells(), _actors[_currentActor ].getMemoryCooldownValue() );
+				drawContent( _actors[ _currentActor ].getLocalFieldCells(), 0.7, _actors[ _currentActor ].getTargetIndexes(), _actors[ _currentActor ].getTargetIndexesGold(), _actors[ _currentActor ].getMemoryCooldownCells(), _actors[ _currentActor ].getMemoryCooldownValue() );
 			}
 		}
 	}
@@ -133,12 +133,12 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 
 	function drawContent( fieldCells, opacity, targetIndexes, targetIndexesGold, memoryCooldownCells, memoryCooldownValue )
 	{
-		opacity           = opacity || 1;
-		targetIndexes     = targetIndexes || [];
-		targetIndexesGold = targetIndexesGold || [];
+		opacity             = opacity || 1;
+		targetIndexes       = targetIndexes || [];
+		targetIndexesGold   = targetIndexesGold || [];
 		memoryCooldownCells = memoryCooldownCells || [];
 		memoryCooldownValue = memoryCooldownValue || null;
-		_ctx.globalAlpha  = opacity;
+		_ctx.globalAlpha    = opacity;
 		for ( var nIndex = 0; nIndex < _size * _size; ++nIndex )
 		{
 			var img = _images.ERROR;
@@ -164,15 +164,15 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 					Math.floor( nIndex / _size ) * _canvas.height / _size,
 					_canvas.width / _size, _canvas.height / _size );
 			}
-			if (img !== _images.UNKNOWN)
+			if ( img !== _images.UNKNOWN )
 			{
 				_ctx.drawImage( img, (nIndex % _size) * _canvas.width / _size,
 					Math.floor( nIndex / _size ) * _canvas.height / _size,
 					_canvas.width / _size, _canvas.height / _size );
 			}
-			if (memoryCooldownCells.length > 0)
+			if ( memoryCooldownCells.length > 0 )
 			{
-				_ctx.globalAlpha =  /*opacity **/ ( 1 - (memoryCooldownCells[nIndex] / memoryCooldownValue) );
+				_ctx.globalAlpha = /*opacity **/ ( 1 - (memoryCooldownCells[ nIndex ] / memoryCooldownValue) );
 				_ctx.drawImage( _images.UNKNOWN, (nIndex % _size) * _canvas.width / _size,
 					Math.floor( nIndex / _size ) * _canvas.height / _size,
 					_canvas.width / _size, _canvas.height / _size );
@@ -375,10 +375,10 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 					{
 						_currentTargetIndex = _targetIndexes[ ind ];
 					}
-					else if (_weights[ _targetIndexes[ ind ] ] === _weights[ _currentTargetIndex ])
+					else if ( _weights[ _targetIndexes[ ind ] ] === _weights[ _currentTargetIndex ] )
 					{
 						//randomizing for better searching in unknown
-						if (Math.random() < 0.25)
+						if ( (_currentTargetIndex !== _currentIndex) && (Math.random() < 0.25) )
 						{
 							_currentTargetIndex = _targetIndexes[ ind ];
 						}
@@ -419,16 +419,16 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 
 		function localCellsChanged()
 		{
-			var seen           = seenNewCells();
-			var forgotten      = forgottenCells();
+			var seen      = seenNewCells();
+			var forgotten = forgottenCells();
 			return (seen || forgotten);
 		}
 
 		function seenNewCells()
 		{
 			_memoryCooldownCells[ _currentIndex ] = _memoryCooldownValue;
-			var nIndexes = getNearbyIndexes( _currentIndex );
-			var changed  = false;
+			var nIndexes                          = getNearbyIndexes( _currentIndex );
+			var changed                           = false;
 			for ( var ind = 0; ind < 4; ++ind )
 			{
 				if ( nIndexes[ ind ] !== false )
@@ -574,16 +574,16 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 	{
 		drawer.changeCurrentActor( -1 );
 	} );
-	document.getElementById("showCopyrightsButton" ).addEventListener('click', function()
+	document.getElementById( "showCopyrightsButton" ).addEventListener( 'click', function()
 	{
-		document.getElementById('canvas' ).style.display = 'none';
-		document.getElementById('interface' ).style.display = 'none';
-		document.getElementById('copyrights' ).style.display = 'block';
-	});
-	document.getElementById('back' ).addEventListener('click', function()
+		document.getElementById( 'canvas' ).style.display     = 'none';
+		document.getElementById( 'interface' ).style.display  = 'none';
+		document.getElementById( 'copyrights' ).style.display = 'block';
+	} );
+	document.getElementById( 'back' ).addEventListener( 'click', function()
 	{
-		document.getElementById('copyrights' ).style.display = 'none';
-		document.getElementById('canvas' ).style.display = 'inline';
-		document.getElementById('interface' ).style.display = 'block';
-	})
+		document.getElementById( 'copyrights' ).style.display = 'none';
+		document.getElementById( 'canvas' ).style.display     = 'inline';
+		document.getElementById( 'interface' ).style.display  = 'block';
+	} )
 })();
