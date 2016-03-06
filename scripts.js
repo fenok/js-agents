@@ -152,21 +152,6 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 					img = _images[ prop ];
 				}
 			}
-			if (img !== _images.UNKNOWN)
-			{
-				_ctx.drawImage( img, (nIndex % _size) * _canvas.width / _size,
-					Math.floor( nIndex / _size ) * _canvas.height / _size,
-					_canvas.width / _size, _canvas.height / _size );
-
-			}
-			if (memoryCooldownCells.length > 0)
-			{
-				_ctx.globalAlpha =  /*opacity **/ ( 1 - (memoryCooldownCells[nIndex] / memoryCooldownValue) );
-				_ctx.drawImage( _images.UNKNOWN, (nIndex % _size) * _canvas.width / _size,
-					Math.floor( nIndex / _size ) * _canvas.height / _size,
-					_canvas.width / _size, _canvas.height / _size );
-				_ctx.globalAlpha = opacity;
-			}
 			if ( targetIndexes.indexOf( nIndex ) !== -1 )
 			{
 				_ctx.drawImage( _images.TARGET, (nIndex % _size) * _canvas.width / _size,
@@ -178,6 +163,20 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 				_ctx.drawImage( _images.TARGET_GOLD, (nIndex % _size) * _canvas.width / _size,
 					Math.floor( nIndex / _size ) * _canvas.height / _size,
 					_canvas.width / _size, _canvas.height / _size );
+			}
+			if (img !== _images.UNKNOWN)
+			{
+				_ctx.drawImage( img, (nIndex % _size) * _canvas.width / _size,
+					Math.floor( nIndex / _size ) * _canvas.height / _size,
+					_canvas.width / _size, _canvas.height / _size );
+			}
+			if (memoryCooldownCells.length > 0)
+			{
+				_ctx.globalAlpha =  /*opacity **/ ( 1 - (memoryCooldownCells[nIndex] / memoryCooldownValue) );
+				_ctx.drawImage( _images.UNKNOWN, (nIndex % _size) * _canvas.width / _size,
+					Math.floor( nIndex / _size ) * _canvas.height / _size,
+					_canvas.width / _size, _canvas.height / _size );
+				_ctx.globalAlpha = opacity;
 			}
 		}
 	}
