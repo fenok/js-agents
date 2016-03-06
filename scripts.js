@@ -355,35 +355,11 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 		{
 			_currentPath = [];
 
-			if ( _targetIndexesGold.length > 0 ) //if agent knows about any gold
+			_currentTargetIndex = calculateCurrentTargetIndex( _targetIndexesGold );
+
+			if ( _currentTargetIndex === _currentIndex )
 			{
-				_currentTargetIndex = _targetIndexesGold[ 0 ];
-				for ( var ind = 0; ind < _targetIndexesGold.length; ++ind ) //then go to the nearest one
-				{
-					if ( _weights[ _targetIndexesGold[ ind ] ] < _weights[ _currentTargetIndex ] )
-					{
-						_currentTargetIndex = _targetIndexesGold[ ind ];
-					}
-				}
-			}
-			else //otherwise just go to the closest UNKNOWN
-			{
-				_currentTargetIndex = _currentIndex;
-				for ( var ind = 0; ind < _targetIndexes.length; ++ind )
-				{
-					if ( _weights[ _targetIndexes[ ind ] ] < _weights[ _currentTargetIndex ] )
-					{
-						_currentTargetIndex = _targetIndexes[ ind ];
-					}
-					else if ( _weights[ _targetIndexes[ ind ] ] === _weights[ _currentTargetIndex ] )
-					{
-						//randomizing for better searching in unknown
-						if ( (_currentTargetIndex !== _currentIndex) && (Math.random() < 0.25) )
-						{
-							_currentTargetIndex = _targetIndexes[ ind ];
-						}
-					}
-				}
+				_currentTargetIndex = calculateCurrentTargetIndex( _targetIndexes );
 			}
 
 			var indexIterator = _currentTargetIndex;
@@ -392,6 +368,28 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 				_currentPath.push( indexIterator );
 				indexIterator = _parentIndexes[ indexIterator ];
 			}
+		}
+
+		function calculateCurrentTargetIndex( targetIndexes )
+		{
+			var currentTargetIndex = _currentIndex;
+
+			for ( var ind = 0; ind < targetIndexes.length; ++ind )
+			{
+				if ( _weights[ targetIndexes[ ind ] ] < _weights[ currentTargetIndex ] )
+				{
+					currentTargetIndex = targetIndexes[ ind ];
+				}
+				else if ( _weights[ targetIndexes[ ind ] ] === _weights[ currentTargetIndex ] )
+				{
+					if ( (currentTargetIndex !== _currentIndex) && (Math.random() < 0.25) )
+					{
+						currentTargetIndex = targetIndexes[ ind ];
+					}
+				}
+			}
+
+			return currentTargetIndex;
 		}
 
 		function calculateCell( nIndex )
@@ -469,9 +467,16 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 								_targetIndexes.push( nIndexes[ ind ] );
 							}
 						}
-						if ( localFieldCells[ nIndexes[ ind ] ] !== cellStates.EMPTY && localFieldCells[ nIndexes[ ind ] ] !== cellStates.GOLD )
+						if ( localFieldCells[ nIndexes[ ind ] ] !== cellStates.EMPTY )
 						{
 							_targetIndexes = _targetIndexes.filter( function( e )
+							{
+								return e !== nIndexes[ ind ];
+							} );
+						}
+						if ( localFieldCells[ nIndexes[ ind ] ] !== cellStates.GOLD )
+						{
+							_targetIndexesGold = _targetIndexesGold.filter( function( e )
 							{
 								return e !== nIndexes[ ind ];
 							} );
@@ -495,14 +500,15 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 						changed                = true;
 						localFieldCells[ ind ] = cellStates.UNKNOWN;
 						_targetIndexes.push.apply( _targetIndexes, getNearbyCells( ind, cellStates.EMPTY ) );
-						_targetIndexes.push.apply( _targetIndexes, getNearbyCells( ind, cellStates.GOLD ) );
-						if ( _targetIndexes.indexOf( ind ) !== -1 )
+						_targetIndexesGold.push.apply( _targetIndexesGold, getNearbyCells( ind, cellStates.GOLD ) );
+						_targetIndexes     = _targetIndexes.filter( function( e )
 						{
-							_targetIndexes = _targetIndexes.filter( function( e )
-							{
-								return e !== ind;
-							} );
-						}
+							return e !== ind;
+						} );
+						_targetIndexesGold = _targetIndexesGold.filter( function( e )
+						{
+							return e !== ind;
+						} );
 					}
 				}
 			}
