@@ -9,12 +9,11 @@ Array.prototype.customRepeat = function( defaultValue, size ) //custom initializ
 
 var miner = miner || {}; //namespace
 
-miner.drawer = function( canvasId, cellStateSelectId, size )
+miner.drawer = function( canvasId, size )
 {
 	var _self = this;
 
-	var _canvas          = document.getElementById( canvasId );
-	var _cellStateSelect = document.getElementById( cellStateSelectId );
+	var _canvas = document.getElementById( canvasId );
 
 	var _ctx = _canvas.getContext( '2d' );
 
@@ -34,19 +33,15 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 
 	var _size = size;
 
-	var cellStates = Object.freeze( { EMPTY : 0, WALL : 1, GOLD : 2, MINER : 3, UNKNOWN : 4 } );
+	var _cellStates = Object.freeze( { EMPTY : 0, WALL : 1, GOLD : 2, MINER : 3, UNKNOWN : 4 } );
 
-	var fieldCells = [].customRepeat( cellStates.EMPTY, _size * _size );
+	var _newCellState = _cellStates.GOLD;
+
+	var _fieldCells = [].customRepeat( _cellStates.EMPTY, _size * _size );
 
 	var _timeInterval = 200;
 
-	var _simulationInterval = setInterval( function()
-	{
-		for ( var ind = 0; ind < _actors.length; ++ind )
-		{
-			_actors[ ind ].tick();
-		}
-	}, _timeInterval );
+	var _simulationInterval;
 
 	var _currentActor = null;
 
@@ -57,14 +52,12 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 
 	_canvas.addEventListener( "click", function( event )
 	{
-		var newCellState = cellStates[ _cellStateSelect.value ];
-
 		var nIndex = Math.floor( event.offsetY / (_canvas.height / _size) ) * _size
 			+ Math.floor( event.offsetX / (_canvas.width / _size) );
 
-		if ( newCellState === cellStates.EMPTY )
+		if ( _newCellState === _cellStates.EMPTY )
 		{
-			fieldCells[ nIndex ] = cellStates.EMPTY;
+			_fieldCells[ nIndex ] = _cellStates.EMPTY;
 			for ( var ind = 0; ind < _actors.length; ++ind )
 			{
 				if ( _actors[ ind ].getCurrentIndex() === nIndex )
@@ -86,15 +79,15 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 				}
 			}
 		}
-		else if ( newCellState === cellStates.MINER )
+		else if ( _newCellState === _cellStates.MINER )
 		{
-			fieldCells[ nIndex ] = cellStates.MINER;
-			_actors.push( new actor( nIndex ) );
+			_fieldCells[ nIndex ] = _cellStates.MINER;
+			_actors.push( new Actor( nIndex ) );
 			_currentActor = _actors.length - 1;
 		}
 		else
 		{
-			fieldCells[ nIndex ] = fieldCells[ nIndex ] === cellStates.EMPTY ? newCellState : fieldCells[ nIndex ];
+			_fieldCells[ nIndex ] = _fieldCells[ nIndex ] === _cellStates.EMPTY ? _newCellState : _fieldCells[ nIndex ];
 		}
 
 		update();
@@ -106,12 +99,17 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 		_canvas.height = _canvas.width;
 
 		drawField();
-		drawContent( fieldCells );
+		drawContent( _fieldCells );
 		if ( _currentActor !== null )
 		{
 			if ( _actors[ _currentActor ] !== undefined )
 			{
-				drawContent( _actors[ _currentActor ].getLocalFieldCells(), 0.7, _actors[ _currentActor ].getTargetIndexes(), _actors[ _currentActor ].getTargetIndexesGold(), _actors[ _currentActor ].getMemoryCooldownCells(), _actors[ _currentActor ].getMemoryCooldownValue() );
+				drawContent( _actors[ _currentActor ].getLocalFieldCells(),
+					0.7,
+					_actors[ _currentActor ].getTargetIndexes(),
+					_actors[ _currentActor ].getTargetIndexesGold(),
+					_actors[ _currentActor ].getMemoryCooldownCells(),
+					_actors[ _currentActor ].getMemoryCooldownValue() );
 			}
 		}
 	}
@@ -131,7 +129,12 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 		_ctx.stroke();
 	}
 
-	function drawContent( fieldCells, opacity, targetIndexes, targetIndexesGold, memoryCooldownCells, memoryCooldownValue )
+	function drawContent( _fieldCells,
+						  opacity,
+						  targetIndexes,
+						  targetIndexesGold,
+						  memoryCooldownCells,
+						  memoryCooldownValue )
 	{
 		opacity             = opacity || 1;
 		targetIndexes       = targetIndexes || [];
@@ -143,10 +146,10 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 		{
 			var img = _images.ERROR;
 
-			for ( var prop in cellStates )
+			for ( var prop in _cellStates )
 			{
-				if ( cellStates.hasOwnProperty( prop )
-					&& cellStates[ prop ] === fieldCells[ nIndex ]
+				if ( _cellStates.hasOwnProperty( prop )
+					&& _cellStates[ prop ] === _fieldCells[ nIndex ]
 					&& _images.hasOwnProperty( prop ) )
 				{
 					img = _images[ prop ];
@@ -198,6 +201,7 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 					if ( callbacksCount === 0 )
 					{
 						_canvas.style.display = "inline";
+						_self.changeSpeed( 0 ); //initialization
 						update();
 					}
 				}
@@ -205,18 +209,18 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 		}
 	}
 
-	init();
-
 	this.changeSpeed = function( delta )
 	{
 		clearInterval( _simulationInterval );
 		_timeInterval       = _timeInterval + delta;
+		_timeInterval       = _timeInterval > 0 ? _timeInterval : 0;
 		_simulationInterval = setInterval( function()
 		{
 			for ( var ind = 0; ind < _actors.length; ++ind )
 			{
 				_actors[ ind ].tick();
 			}
+			update();
 		}, _timeInterval );
 	};
 
@@ -236,13 +240,23 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 		}
 	};
 
-	function actor( nStartIndex )
+	this.changeNewCellState = function( newCellState )
+	{
+		if ( _cellStates.hasOwnProperty( newCellState ) )
+		{
+			_newCellState = _cellStates[ newCellState ];
+		}
+	};
+
+	init();
+
+	function Actor( nStartIndex )
 	{
 		var _self = this;
 
-		var localFieldCells = [].customRepeat( cellStates.UNKNOWN, _size * _size );
+		var _localFieldCells = [].customRepeat( _cellStates.UNKNOWN, _size * _size );
 
-		localFieldCells[ nStartIndex ] = cellStates.MINER;
+		_localFieldCells[ nStartIndex ] = _cellStates.MINER;
 
 		var _memoryCooldownValue = 100;
 		var _memoryCooldownCells = [].customRepeat( 0, _size * _size );
@@ -262,15 +276,6 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 
 		this.tick = function()
 		{
-			/*
-			 'forget' some cells according to 'visited cooldown'
-			 watch nearby cells (update local fieldCells to global fieldCells)
-			 if any fieldCell changed, recalculate routes and choose the nearest cell with gold or, otherwise
-			 colliding with UNKNOWN cell
-			 if no cell found (entire field is known) -- wait, otherwise --
-			 perform one step to the cell of that kind
-			 */
-
 			//TODO: optimize somehow?
 			_targetIndexes     = _targetIndexes.filter( function( e )
 			{
@@ -288,13 +293,11 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 			}
 
 			moveTo( _currentPath.pop() );
-
-			update();
 		};
 
 		this.getLocalFieldCells = function()
 		{
-			return localFieldCells;
+			return _localFieldCells;
 		};
 
 		this.getCurrentIndex = function()
@@ -326,11 +329,11 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 		{
 			if ( nIndex !== undefined )
 			{
-				fieldCells[ _currentIndex ]      = cellStates.EMPTY;
-				localFieldCells[ _currentIndex ] = cellStates.EMPTY;
+				_fieldCells[ _currentIndex ]      = _cellStates.EMPTY;
+				_localFieldCells[ _currentIndex ] = _cellStates.EMPTY;
 
-				fieldCells[ nIndex ]      = cellStates.MINER;
-				localFieldCells[ nIndex ] = cellStates.MINER;
+				_fieldCells[ nIndex ]      = _cellStates.MINER;
+				_localFieldCells[ nIndex ] = _cellStates.MINER;
 
 				_currentIndex = nIndex;
 			}
@@ -400,8 +403,8 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 			{
 				if ( nIndexes[ ind ] !== false )
 				{
-					if ( localFieldCells[ nIndexes[ ind ] ] === cellStates.EMPTY
-						|| localFieldCells[ nIndexes[ ind ] ] === cellStates.GOLD )
+					if ( _localFieldCells[ nIndexes[ ind ] ] === _cellStates.EMPTY
+						|| _localFieldCells[ nIndexes[ ind ] ] === _cellStates.GOLD )
 					{
 						if ( (_weights[ nIndex ] + 1) < _weights[ nIndexes[ ind ] ] )
 						{
@@ -432,19 +435,19 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 				if ( nIndexes[ ind ] !== false )
 				{
 					_memoryCooldownCells[ nIndexes[ ind ] ] = _memoryCooldownValue;
-					if ( localFieldCells[ nIndexes[ ind ] ] !== fieldCells[ nIndexes[ ind ] ] )
+					if ( _localFieldCells[ nIndexes[ ind ] ] !== _fieldCells[ nIndexes[ ind ] ] )
 					{
-						var oldState                       = localFieldCells[ nIndexes[ ind ] ];
-						localFieldCells[ nIndexes[ ind ] ] = fieldCells[ nIndexes[ ind ] ];
+						var oldState                        = _localFieldCells[ nIndexes[ ind ] ];
+						_localFieldCells[ nIndexes[ ind ] ] = _fieldCells[ nIndexes[ ind ] ];
 
-						if ( oldState === cellStates.UNKNOWN )
+						if ( oldState === _cellStates.UNKNOWN )
 						{
 							var indexes = getNearbyIndexes( nIndexes[ ind ] );
 							for ( var itr = 0; itr < 4; ++itr )
 							{
 								if ( _targetIndexes.indexOf( indexes[ itr ] ) !== -1 )
 								{
-									if ( getNearbyCells( indexes[ itr ], cellStates.UNKNOWN ).length === 0 )
+									if ( getNearbyCells( indexes[ itr ], _cellStates.UNKNOWN ).length === 0 )
 									{
 										_targetIndexes = _targetIndexes.filter( function( e )
 										{
@@ -455,26 +458,26 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 							}
 						}
 
-						if ( localFieldCells[ nIndexes[ ind ] ] === cellStates.GOLD )
+						if ( _localFieldCells[ nIndexes[ ind ] ] === _cellStates.GOLD )
 						{
 							_targetIndexesGold.push( nIndexes[ ind ] );
 						}
 						changed = true;
-						if ( getNearbyCells( nIndexes[ ind ], cellStates.UNKNOWN ).length > 0 )
+						if ( getNearbyCells( nIndexes[ ind ], _cellStates.UNKNOWN ).length > 0 )
 						{
-							if ( localFieldCells[ nIndexes[ ind ] ] === cellStates.EMPTY )
+							if ( _localFieldCells[ nIndexes[ ind ] ] === _cellStates.EMPTY )
 							{
 								_targetIndexes.push( nIndexes[ ind ] );
 							}
 						}
-						if ( localFieldCells[ nIndexes[ ind ] ] !== cellStates.EMPTY )
+						if ( _localFieldCells[ nIndexes[ ind ] ] !== _cellStates.EMPTY )
 						{
 							_targetIndexes = _targetIndexes.filter( function( e )
 							{
 								return e !== nIndexes[ ind ];
 							} );
 						}
-						if ( localFieldCells[ nIndexes[ ind ] ] !== cellStates.GOLD )
+						if ( _localFieldCells[ nIndexes[ ind ] ] !== _cellStates.GOLD )
 						{
 							_targetIndexesGold = _targetIndexesGold.filter( function( e )
 							{
@@ -497,10 +500,10 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 					--_memoryCooldownCells[ ind ];
 					if ( _memoryCooldownCells[ ind ] === 0 )
 					{
-						changed                = true;
-						localFieldCells[ ind ] = cellStates.UNKNOWN;
-						_targetIndexes.push.apply( _targetIndexes, getNearbyCells( ind, cellStates.EMPTY ) );
-						_targetIndexesGold.push.apply( _targetIndexesGold, getNearbyCells( ind, cellStates.GOLD ) );
+						changed                 = true;
+						_localFieldCells[ ind ] = _cellStates.UNKNOWN;
+						_targetIndexes.push.apply( _targetIndexes, getNearbyCells( ind, _cellStates.EMPTY ) );
+						_targetIndexesGold.push.apply( _targetIndexesGold, getNearbyCells( ind, _cellStates.GOLD ) );
 						_targetIndexes     = _targetIndexes.filter( function( e )
 						{
 							return e !== ind;
@@ -523,7 +526,7 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 			{
 				if ( nIndexes[ ind ] !== false )
 				{
-					if ( localFieldCells[ nIndexes[ ind ] ] === state )
+					if ( _localFieldCells[ nIndexes[ ind ] ] === state )
 					{
 						result.push( nIndexes[ ind ] );
 					}
@@ -563,7 +566,11 @@ miner.drawer = function( canvasId, cellStateSelectId, size )
 
 (function()
 {
-	var drawer = new miner.drawer( "canvas", "cellStateSelect", 20 );
+	var drawer = new miner.drawer( "canvas", 20 );
+	document.getElementById( "cellStateSelect" ).addEventListener( 'change', function()
+	{
+		drawer.changeNewCellState( document.getElementById( "cellStateSelect" ).value );
+	} );
 	document.getElementById( "speedUpButton" ).addEventListener( 'click', function()
 	{
 		drawer.changeSpeed( -50 );
