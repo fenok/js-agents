@@ -28,12 +28,13 @@ miner.drawer = function( canvasId, size )
 		UNKNOWN     : "unknown.png",
 		EMPTY       : "ground.svg",
 		TARGET      : "target.svg",
-		TARGET_GOLD : "target-gold.svg"
+		TARGET_GOLD : "target-gold.svg",
+		MINER_SELF  : "miner-self.svg"
 	};
 
 	var _size = size;
 
-	var _cellStates = Object.freeze( { EMPTY : 0, WALL : 1, GOLD : 2, MINER : 3, UNKNOWN : 4 } );
+	var _cellStates = Object.freeze( { EMPTY : 0, WALL : 1, GOLD : 2, MINER : 3, UNKNOWN : 4, MINER_SELF : 5 } );
 
 	var _newCellState = _cellStates.GOLD;
 
@@ -79,15 +80,14 @@ miner.drawer = function( canvasId, size )
 				}
 			}
 		}
-		else if ( _newCellState === _cellStates.MINER )
+		else if ( _fieldCells[ nIndex ] === _cellStates.EMPTY )
 		{
-			_fieldCells[ nIndex ] = _cellStates.MINER;
-			_actors.push( new Actor( nIndex ) );
-			_currentActor = _actors.length - 1;
-		}
-		else
-		{
-			_fieldCells[ nIndex ] = _fieldCells[ nIndex ] === _cellStates.EMPTY ? _newCellState : _fieldCells[ nIndex ];
+			_fieldCells[ nIndex ] = _newCellState;
+			if ( _newCellState === _cellStates.MINER )
+			{
+				_actors.push( new Actor( nIndex ) );
+				_currentActor = _actors.length - 1;
+			}
 		}
 
 		update();
@@ -256,7 +256,7 @@ miner.drawer = function( canvasId, size )
 
 		var _localFieldCells = [].customRepeat( _cellStates.UNKNOWN, _size * _size );
 
-		_localFieldCells[ nStartIndex ] = _cellStates.MINER;
+		_localFieldCells[ nStartIndex ] = _cellStates.MINER_SELF;
 
 		var _memoryCooldownValue = 100;
 		var _memoryCooldownCells = [].customRepeat( 0, _size * _size );
@@ -333,7 +333,7 @@ miner.drawer = function( canvasId, size )
 				_localFieldCells[ _currentIndex ] = _cellStates.EMPTY;
 
 				_fieldCells[ nIndex ]      = _cellStates.MINER;
-				_localFieldCells[ nIndex ] = _cellStates.MINER;
+				_localFieldCells[ nIndex ] = _cellStates.MINER_SELF;
 
 				_currentIndex = nIndex;
 			}
